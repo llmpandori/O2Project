@@ -42,5 +42,9 @@
   # select '1' to confirm and press enter to run code
   # it will open your new reposiory in GitHub -- edit if necessary
   
+# to push to github
+  # commit something new
+  # press 'push' at top of new window
+
   
   
