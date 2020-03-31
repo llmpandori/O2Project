@@ -37,5 +37,10 @@
   library(usethis)
   # make repository
   use_github(protocol = 'https', auth_token = Sys.getenv('GITHUB_PAT'))
-
+  # review name and description
+  1
+  # select '1' to confirm and press enter to run code
+  # it will open your new reposiory in GitHub -- edit if necessary
+  
+  
   
