@@ -8,7 +8,7 @@
 
 ##### Packages and set-up #####
 
-# Clear workspace
+# Clear workspace 
 rm(lists=ls())
 
 # Libraries
