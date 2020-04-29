@@ -29,8 +29,11 @@ pooldata <- read_csv("SitkaNSF_PoolData_04092020.csv")
                      Treatment == 'Control') # column & observations
   
 # Productivity data (light, dark, recovery experiment results)
-prodata <- read_csv("SitkaNSF_ProductivityLightDark_04092020_longformat.csv", 
-          col_types = cols(Date = col_date(format = "%m/%d/%Y")))
+prodata <- read_csv("SitkaNSF_ProductivityLightDark_04092020.csv", 
+                       col_types = cols(`Dark_Time_hh:mm` = col_time(format = "%H:%M"), 
+                                        Date = col_date(format = "%m/%d/%Y"), 
+                                        `Init_time_hh:mm` = col_time(format = "%H:%M"), 
+                                        `Rec_Time_hh:mm` = col_time(format = "%H:%M")))
 
   # Select pools of interest
     # Get list of control pools from pool data (7,10,25,30,31)
@@ -44,42 +47,45 @@ prodata <- read_csv("SitkaNSF_ProductivityLightDark_04092020_longformat.csv",
     # Filter only 2019 data
     prodata <- filter(prodata, Year == '2019')
     
+    # get rid of weird calc columns
+    prodata <- prodata[,-c(25:35)]
 # Water chemsitry data (T1, T2, T3 Day and Night data)
-chemdata <- read_csv("SitkaNSF_WaterChemData_04092020.csv")
+chemdata <- read_csv("SitkaNSF_WaterChemData_04092020.csv", 
+                     col_types = cols(Date = col_date(format = "%m/%d/%Y")))
 View(chemdata)
-  # Comment from SL - chemdata <- chemdata [-c(,9:26)] didn't work
-  # Resolve from LP - see changes in format below
-    # I wouldn't get rid of column 9 - there is data farther down
-    unique(chemdata$`Light /Apogee(PAR)`) # lots of non-NA values
-    # To get rid of columns 11-26
+    # get rid of weird columns
     chemdata <- chemdata[,-c(11:26)] # note location of comma
-
-  # Code from SL - 
-      # chemdata <- filter(chemdata, Pool == 7, 10, 25, 30, 31)
-          # This won't work because each == can only refer to one thing
-          # Unless... you use %in% instead to specify a list (see productivity data above)
-      # chemdata <- filter(chemdata, Pool = 7, Pool = 10 ...)
-          # This won't work because you have to repeat the "filter" argument over and over again
-          # this is a good start, becuase the following will work: 
+    # filter for pools
+    chemdata <- filter(chemdata, Pool %in% unique(pooldata$Pool))
     
-      chemdata2 <- filter(chemdata, Pool == 7 | Pool == 10 | Pool == 25 | Pool == 30 | Pool == 31) # the | means "or"
+    chemdata <- filter(chemdata, year(Date) == '2019')
       
-          # if you want to be more concise, you can use %in%
-      
-      chemdata3 <- filter(chemdata, Pool %in% c(7,10,25,30,31))
-      
-          # if you want to be even more concise, you can have the unique list of pools specified by the unique() function so that you don't have to type the pool numbers by hand
-      
-      chemdata4 <- filter(chemdata, Pool %in% unique(pooldata$Pool))
-      
-      # If you look in the environment, all of the chemdatas we created (chemdata2, chemdata3, chemdata4) are all the same
-      
-      # we can use the unique() function to double check the code did what we wanted it to do
-      
-      unique(chemdata2$Pool)
-      unique(chemdata3$Pool)
-      unique(chemdata4$Pool)
-      
-      # We can confirm that these have all done the same thing and select one to use for our final analysis
-      
-      # You're on the right track :) keep going Stephany :)
+##### Calculate NPP #####
+
+# NPP formula = change in O2 / change in time
+  # Producitivity data (Initial --> Dark) and (Dark --> Recovery)
+  # Chem Data (Night T1 --> T2) & (Day T1 --> T2)
+    
+prodata <- prodata %>%
+  # mutate(new colum = math)
+  mutate(ID_delta_DO = Dark_DO_mg_L - Init_DO_mg_L) %>%
+  mutate(ID_delta_Time = time_length(`Dark_Time_hh:mm` - `Init_time_hh:mm`, unit = 'hour')) %>%
+  mutate(ID_NPP = ID_delta_DO/ID_delta_Time)
+
+##### Let's plot something! #####
+
+ggplot() + 
+  geom_col(data = prodata,
+            mapping = aes(x = Pool, y = ID_NPP, fill = Pool)) + 
+  xlab('Pool') + 
+  # y label 
+  ylab('NPP gO2/L/hr') + 
+  # gives title
+  ggtitle('Initial --> Dark NPP in Control Pools') +
+  # massive improvement w one line of code
+  theme_bw()
+
+
+
+
+  
