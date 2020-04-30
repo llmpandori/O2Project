@@ -90,11 +90,20 @@ View(chemdata)
 
 
 chemdata <- chemdata %>%
-  rename('timept' = 'Time point') %>%
+  rename('timept' = 'Time point',
+         'timeh2ocollect' = 'Time water collected') %>%
   # structure: rename('newname' = 'oldname')
   filter(timept == 1 | timept == 2)
-  # filter time points 1 or 2
+  # filter time points 1 or 2 
 
+chemdata1 <- filter(chemdata, timept == 1)
+chemdata2 <- filter(chemdata, timept == 2)
+
+colnames(chemdata1) <- paste('one',colnames(chemdata1), sep = '.')
+
+colnames(chemdata2) <- paste('two', colnames(chemdata2), sep = '.')
+
+chemdata3 <- cbind(chemdata1, chemdata2)
 
 
   
