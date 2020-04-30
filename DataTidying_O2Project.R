@@ -85,6 +85,15 @@ ggplot() +
   # massive improvement w one line of code
   theme_bw()
 
+# Water chem data
+View(chemdata)
+
+
+chemdata <- chemdata %>%
+  rename('timept' = 'Time point') %>%
+  # structure: rename('newname' = 'oldname')
+  filter(timept == 1 | timept == 2)
+  # filter time points 1 or 2
 
 
 
